@@ -1,0 +1,43 @@
+- name: Check for prebuilt container image from github actions
+  stat:
+    path: /vagrant/dev/tmp/container-image.tar
+  register: container_image
+
+- name: Remove docker image
+  docker_image:
+    name: docker_image
+    tag: local
+    force_absent: true
+    state: absent
+  when: not container_image.stat.exists
+
+- name: Build docker image
+  docker_image:
+    name: ghcr.io/skatteetaten/vagrant-hashistack-template
+    tag: latest
+    build:
+      path: /vagrant/docker
+      pull: false
+      http_timeout: 120
+      args:
+        TEST_DOWNLOAD_BUILD_ARGUMENT: https://nrk.no
+    source: build
+  when: not container_image.stat.exists
+
+# NB! Folder /vagrant is mounted to Minio
+# Folder `dev` is going to be a bucket name
+- name: Create tmp if it does not exist
+  file:
+    path: /vagrant/dev/tmp
+    state: directory
+    mode: '0755'
+    owner: vagrant
+    group: vagrant
+
+- name: Archive docker image
+  docker_image:
+    name: ghcr.io/skatteetaten/vagrant-hashistack-template
+    tag: latest
+    archive_path: /vagrant/dev/tmp/container-image.tar
+    source: local
+  when: not container_image.stat.exists

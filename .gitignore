@@ -1,0 +1,10 @@
+.vagrant
+.idea
+packer/output-hashistack
+terraform.tfstate*
+.terraform
+.minio.sys
+tmp
+docker/conf/certificates/*.crt
+super-linter.log
+/template_example/ttyS0.log
